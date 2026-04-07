@@ -3,6 +3,7 @@ using BetterGenshinImpact.Core.Simulator;
 using BetterGenshinImpact.GameTask.Model;
 using BetterGenshinImpact.Genshin.Settings;
 using BetterGenshinImpact.Helpers;
+using BetterGenshinImpact.Modules.MultiAccount;
 using BetterGenshinImpact.Service;
 using System;
 using System.Collections.Generic;
@@ -76,6 +77,80 @@ namespace BetterGenshinImpact.GameTask
         /// 注意 IsInitialized = false 时，这个值就会被设置
         /// </summary>
         public DateTime LinkedStartGenshinTime { get; set; } = DateTime.MinValue;
+
+        public GameLaunchContext? CurrentLaunchContext { get; private set; }
+
+        public void SetRuntimeLaunchContext(GameLaunchContext? launchContext)
+        {
+            CurrentLaunchContext = launchContext;
+        }
+
+        public void ClearRuntimeLaunchContext()
+        {
+            CurrentLaunchContext = null;
+        }
+
+        public string ResolveGenshinInstallPath()
+        {
+            return CurrentLaunchContext?.InstallPath ?? Config.GenshinStartConfig.InstallPath;
+        }
+
+        public string ResolveGenshinStartArgs()
+        {
+            return CurrentLaunchContext?.LaunchArgs ?? Config.GenshinStartConfig.GenshinStartArgs;
+        }
+
+        public GameRegion? ResolveGameRegion()
+        {
+            return CurrentLaunchContext?.Region;
+        }
+
+        public bool ShouldAutoEnterGame()
+        {
+            if (CurrentLaunchContext != null)
+            {
+                return CurrentLaunchContext.AutoEnterGame;
+            }
+
+            return Config.GenshinStartConfig.AutoEnterGameEnabled;
+        }
+
+        public List<string> GetResolvedGenshinGameProcessNameList()
+        {
+            List<string> list = ["YuanShen", "GenshinImpact", "Genshin Impact Cloud Game", "Genshin Impact Cloud"];
+
+            if (IsInitialized)
+            {
+                TryAddProcessName(list, SystemInfo.GameProcessName);
+            }
+
+            try
+            {
+                var installPath = Config.GenshinStartConfig.InstallPath;
+                if (!string.IsNullOrEmpty(installPath))
+                {
+                    TryAddProcessName(list, Path.GetFileNameWithoutExtension(installPath));
+                }
+            }
+            catch
+            {
+                /* ignore */
+            }
+
+            TryAddProcessName(list, CurrentLaunchContext?.GetProcessName());
+            return list;
+        }
+
+        private static void TryAddProcessName(List<string> list, string? processName)
+        {
+            if (string.IsNullOrWhiteSpace(processName))
+            {
+                return;
+            }
+
+            list.Remove(processName);
+            list.Insert(0, processName);
+        }
 
         public List<string> GetGenshinGameProcessNameList()
         {

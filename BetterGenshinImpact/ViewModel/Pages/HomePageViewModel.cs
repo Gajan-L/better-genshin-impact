@@ -9,6 +9,7 @@ using BetterGenshinImpact.Helpers;
 using BetterGenshinImpact.Helpers.Extensions;
 using BetterGenshinImpact.Helpers.Ui;
 using BetterGenshinImpact.Model;
+using BetterGenshinImpact.Modules.MultiAccount;
 using BetterGenshinImpact.Service.Interface;
 using BetterGenshinImpact.View;
 using BetterGenshinImpact.View.Controls.Webview;
@@ -217,33 +218,45 @@ public partial class HomePageViewModel : ViewModel
     [RelayCommand(CanExecute = nameof(CanStartTrigger))]
     public async Task OnStartTriggerAsync()
     {
+        try
+        {
+            await EnsureDispatcherStartedAsync();
+        }
+        catch (Exception ex)
+        {
+            await ThemedMessageBox.ErrorAsync(ex.Message);
+        }
+    }
+
+    public async Task EnsureDispatcherStartedAsync(GameLaunchContext? launchContext = null, bool forceGameStart = false)
+    {
+        if (launchContext != null)
+        {
+            TaskContext.Instance().SetRuntimeLaunchContext(launchContext);
+        }
+
         var hWnd = SystemControl.FindGenshinImpactHandle();
         if (hWnd == IntPtr.Zero)
         {
-            if (Config.GenshinStartConfig.LinkedStartEnabled)
+            var shouldStartGame = forceGameStart || Config.GenshinStartConfig.LinkedStartEnabled || launchContext != null;
+            if (!shouldStartGame)
             {
-                if (string.IsNullOrEmpty(Config.GenshinStartConfig.InstallPath))
-                {
-                    await ThemedMessageBox.ErrorAsync("没有找到原神的安装路径");
-                    return;
-                }
-
-                hWnd = await SystemControl.StartFromLocalAsync(Config.GenshinStartConfig.InstallPath);
-                if (hWnd != IntPtr.Zero)
-                {
-                    TaskContext.Instance().LinkedStartGenshinTime = DateTime.Now; // 标识关联启动原神的时间
-                }
-                else
-                {
-                    return;
-                }
+                throw new InvalidOperationException("未找到原神窗口，请先启动原神！");
             }
 
+            var installPath = launchContext?.InstallPath ?? TaskContext.Instance().ResolveGenshinInstallPath();
+            if (string.IsNullOrWhiteSpace(installPath))
+            {
+                throw new InvalidOperationException("没有找到原神的安装路径");
+            }
+
+            hWnd = await SystemControl.StartFromLocalAsync(installPath, launchContext?.LaunchArgs);
             if (hWnd == IntPtr.Zero)
             {
-                await ThemedMessageBox.ErrorAsync("未找到原神窗口，请先启动原神！");
-                return;
+                throw new InvalidOperationException("未能启动原神窗口");
             }
+
+            TaskContext.Instance().LinkedStartGenshinTime = DateTime.Now;
         }
 
         Start(hWnd);
@@ -294,6 +307,11 @@ public partial class HomePageViewModel : ViewModel
 
     [RelayCommand(CanExecute = nameof(CanStopTrigger))]
     private void OnStopTrigger()
+    {
+        Stop();
+    }
+
+    public void StopDispatcher()
     {
         Stop();
     }
@@ -401,12 +419,13 @@ public partial class HomePageViewModel : ViewModel
 
     private void ReadGameInstallPath()
     {
-        // 检查用户是否配置了原神安装目录，如果没有，尝试从注册表中读取
+        // 检查用户是否配置了原神安装目录，如果没有，尝试自动搜索常见安装位置
         if (string.IsNullOrEmpty(Config.GenshinStartConfig.InstallPath))
         {
             Task.Run(async () =>
             {
-                var p1 = RegistryGameLocator.GetDefaultGameInstallPath();
+                var resolver = new GameExecutablePathResolver();
+                var p1 = resolver.Find(GameRegion.CNOfficial) ?? resolver.Find(GameRegion.Global);
                 if (!string.IsNullOrEmpty(p1))
                 {
                     Config.GenshinStartConfig.InstallPath = p1;

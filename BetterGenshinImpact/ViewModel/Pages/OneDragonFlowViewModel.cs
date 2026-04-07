@@ -17,6 +17,7 @@ using BetterGenshinImpact.GameTask.Common.Element.Assets;
 using BetterGenshinImpact.GameTask.Common.Job;
 using BetterGenshinImpact.Helpers;
 using BetterGenshinImpact.Helpers.Ui;
+using BetterGenshinImpact.Modules.MultiAccount.Runner;
 using BetterGenshinImpact.Service;
 using BetterGenshinImpact.Service.Notification;
 using BetterGenshinImpact.Service.Notification.Model.Enum;
@@ -40,6 +41,7 @@ namespace BetterGenshinImpact.ViewModel.Pages;
 public partial class OneDragonFlowViewModel : ViewModel
 {
     private readonly ILogger<OneDragonFlowViewModel> _logger = App.GetLogger<OneDragonFlowViewModel>();
+    private readonly IOneDragonRunner _oneDragonRunner = App.GetService<IOneDragonRunner>()!;
 
     public static readonly string OneDragonFlowConfigFolder = Global.Absolute(@"User\OneDragon");
 
@@ -384,6 +386,7 @@ public partial class OneDragonFlowViewModel : ViewModel
                     Name = "默认配置"
                 };
                 configs.Add(selected);
+                WriteConfig(selected);
             }
         }
 
@@ -576,6 +579,25 @@ public partial class OneDragonFlowViewModel : ViewModel
     [RelayCommand]
     public async Task OnOneKeyExecute()
     {
+        if (SelectedConfig == null)
+        {
+            Toast.Warning("璇峰厛閫夋嫨浠诲姟");
+            return;
+        }
+
+        SaveConfig();
+
+        try
+        {
+            await _oneDragonRunner.RunAsync(SelectedConfig.Name);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "涓€鏉￠緳鎵ц澶辫触");
+            Toast.Error("涓€鏉￠緳鎵ц澶辫触");
+        }
+
+        return;
         _logger.LogInformation($"启用一条龙配置：{SelectedConfig.Name}");
         var taskListCopy = new List<OneDragonTaskItem>(TaskList);//避免执行过程中修改TaskList
         foreach (var task in taskListCopy)

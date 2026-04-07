@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,6 +14,7 @@ using BetterGenshinImpact.Core.Config;
 using BetterGenshinImpact.Service.Interface;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using NavigationViewItem = Wpf.Ui.Controls.NavigationViewItem;
 
 namespace BetterGenshinImpact.View.Behavior
 {
@@ -325,7 +328,7 @@ namespace BetterGenshinImpact.View.Behavior
                 }
 
                 var culture = translator.GetCurrentCulture();
-                if (culture.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
+                if (IsSourceCulture(culture))
                 {
                     return;
                 }
@@ -347,6 +350,11 @@ namespace BetterGenshinImpact.View.Behavior
                         continue;
                     }
 
+                    if (IsInNavigationViewItemContext(current))
+                    {
+                        continue;
+                    }
+
                     if (IsInComboBoxContext(current))
                     {
                         continue;
@@ -360,30 +368,7 @@ namespace BetterGenshinImpact.View.Behavior
                         TrackToolTip(feCurrent.ToolTip, queue);
                     }
 
-                    if (current is Visual || current is System.Windows.Media.Media3D.Visual3D)
-                    {
-                        var count = VisualTreeHelper.GetChildrenCount(current);
-                        for (var i = 0; i < count; i++)
-                        {
-                            queue.Enqueue(VisualTreeHelper.GetChild(current, i));
-                        }
-                    }
-
-                    if (current is FrameworkElement || current is FrameworkContentElement)
-                    {
-                        foreach (var child in LogicalTreeHelper.GetChildren(current).OfType<DependencyObject>())
-                        {
-                            queue.Enqueue(child);
-                        }
-                    }
-
-                    if (current is FrameworkElement fe)
-                    {
-                        foreach (var inline in EnumerateInlineObjects(fe))
-                        {
-                            queue.Enqueue(inline);
-                        }
-                    }
+                    EnqueueKnownChildren(queue, current);
                 }
             }
 
@@ -457,6 +442,63 @@ namespace BetterGenshinImpact.View.Behavior
                     if (inline is InlineUIContainer { Child: DependencyObject child })
                     {
                         yield return child;
+                    }
+                }
+            }
+
+            private static void EnqueueKnownChildren(Queue<DependencyObject> queue, DependencyObject current)
+            {
+                if (current is Visual || current is System.Windows.Media.Media3D.Visual3D)
+                {
+                    var count = VisualTreeHelper.GetChildrenCount(current);
+                    for (var i = 0; i < count; i++)
+                    {
+                        queue.Enqueue(VisualTreeHelper.GetChild(current, i));
+                    }
+                }
+
+                if (current is FrameworkElement || current is FrameworkContentElement)
+                {
+                    foreach (var child in LogicalTreeHelper.GetChildren(current).OfType<DependencyObject>())
+                    {
+                        queue.Enqueue(child);
+                    }
+                }
+
+                if (current is FrameworkElement fe)
+                {
+                    foreach (var inline in EnumerateInlineObjects(fe))
+                    {
+                        queue.Enqueue(inline);
+                    }
+                }
+
+                foreach (var child in EnumerateDependencyObjectCollections(current))
+                {
+                    queue.Enqueue(child);
+                }
+            }
+
+            private static IEnumerable<DependencyObject> EnumerateDependencyObjectCollections(DependencyObject current)
+            {
+                if (current is ItemsControl itemsControl)
+                {
+                    foreach (var item in itemsControl.Items.OfType<DependencyObject>())
+                    {
+                        yield return item;
+                    }
+                }
+
+                foreach (var propertyName in new[] { "MenuItems", "FooterMenuItems" })
+                {
+                    if (current.GetType().GetProperty(propertyName)?.GetValue(current) is not IEnumerable enumerable)
+                    {
+                        continue;
+                    }
+
+                    foreach (var item in enumerable.OfType<DependencyObject>())
+                    {
+                        yield return item;
                     }
                 }
             }
@@ -592,6 +634,31 @@ namespace BetterGenshinImpact.View.Behavior
                 return false;
             }
 
+            private static bool IsSourceCulture(CultureInfo culture)
+            {
+                if (culture == CultureInfo.InvariantCulture)
+                {
+                    return false;
+                }
+
+                return IsSourceCultureName(culture.Name);
+            }
+
+            private static bool IsSourceCultureName(string cultureName)
+            {
+                if (string.IsNullOrWhiteSpace(cultureName))
+                {
+                    return false;
+                }
+
+                return cultureName.Equals("zh-Hans", StringComparison.OrdinalIgnoreCase)
+                       || cultureName.StartsWith("zh-Hans-", StringComparison.OrdinalIgnoreCase)
+                       || cultureName.Equals("zh-CN", StringComparison.OrdinalIgnoreCase)
+                       || cultureName.StartsWith("zh-CN-", StringComparison.OrdinalIgnoreCase)
+                       || cultureName.Equals("zh-SG", StringComparison.OrdinalIgnoreCase)
+                       || cultureName.StartsWith("zh-SG-", StringComparison.OrdinalIgnoreCase);
+            }
+
             private void TranslateIfNotBound(
                 DependencyObject obj,
                 DependencyProperty property,
@@ -667,30 +734,7 @@ namespace BetterGenshinImpact.View.Behavior
                         }
                     }
 
-                    if (current is Visual || current is System.Windows.Media.Media3D.Visual3D)
-                    {
-                        var count = VisualTreeHelper.GetChildrenCount(current);
-                        for (var i = 0; i < count; i++)
-                        {
-                            queue.Enqueue(VisualTreeHelper.GetChild(current, i));
-                        }
-                    }
-
-                    if (current is FrameworkElement || current is FrameworkContentElement)
-                    {
-                        foreach (var child in LogicalTreeHelper.GetChildren(current).OfType<DependencyObject>())
-                        {
-                            queue.Enqueue(child);
-                        }
-                    }
-
-                    if (current is TextBlock tb)
-                    {
-                        foreach (var inline in EnumerateInlineObjects(tb.Inlines))
-                        {
-                            queue.Enqueue(inline);
-                        }
-                    }
+                    EnqueueKnownChildren(queue, current);
                 }
             }
 
@@ -723,30 +767,7 @@ namespace BetterGenshinImpact.View.Behavior
                         }
                     }
 
-                    if (current is Visual || current is System.Windows.Media.Media3D.Visual3D)
-                    {
-                        var count = VisualTreeHelper.GetChildrenCount(current);
-                        for (var i = 0; i < count; i++)
-                        {
-                            queue.Enqueue(VisualTreeHelper.GetChild(current, i));
-                        }
-                    }
-
-                    if (current is FrameworkElement || current is FrameworkContentElement)
-                    {
-                        foreach (var child in LogicalTreeHelper.GetChildren(current).OfType<DependencyObject>())
-                        {
-                            queue.Enqueue(child);
-                        }
-                    }
-
-                    if (current is TextBlock tb)
-                    {
-                        foreach (var inline in EnumerateInlineObjects(tb.Inlines))
-                        {
-                            queue.Enqueue(inline);
-                        }
-                    }
+                    EnqueueKnownChildren(queue, current);
                 }
             }
 
@@ -872,6 +893,22 @@ namespace BetterGenshinImpact.View.Behavior
                     }
 
                     if (current is Popup { PlacementTarget: ComboBox })
+                    {
+                        return true;
+                    }
+
+                    current = GetParentObject(current);
+                }
+
+                return false;
+            }
+
+            private static bool IsInNavigationViewItemContext(DependencyObject obj)
+            {
+                DependencyObject? current = obj;
+                while (current != null)
+                {
+                    if (current is NavigationViewItem)
                     {
                         return true;
                     }

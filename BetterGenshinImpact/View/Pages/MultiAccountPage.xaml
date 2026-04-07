@@ -1,0 +1,542 @@
+<Page x:Class="BetterGenshinImpact.View.Pages.MultiAccountPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:converters="clr-namespace:BetterGenshinImpact.View.Converters"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:pages="clr-namespace:BetterGenshinImpact.ViewModel.Pages"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      Title="MultiAccountPage"
+      d:DataContext="{d:DesignInstance Type=pages:MultiAccountPageViewModel}"
+      d:DesignHeight="960"
+      d:DesignWidth="1280"
+      ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
+      ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+      FontFamily="{StaticResource TextThemeFontFamily}"
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+      mc:Ignorable="d">
+
+    <Page.Resources>
+        <converters:TrConverter x:Key="TrConverter" />
+        <Style x:Key="TranslatedTextBlockStyle"
+               TargetType="TextBlock">
+            <Setter Property="Text">
+                <Setter.Value>
+                    <MultiBinding Converter="{StaticResource TrConverter}">
+                        <Binding RelativeSource="{RelativeSource Self}"
+                                 Path="Tag" />
+                        <Binding Source="{StaticResource TranslationBindingSource}"
+                                 Path="Stamp" />
+                    </MultiBinding>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="TranslatedUiTextBlockStyle"
+               TargetType="ui:TextBlock">
+            <Setter Property="Text">
+                <Setter.Value>
+                    <MultiBinding Converter="{StaticResource TrConverter}">
+                        <Binding RelativeSource="{RelativeSource Self}"
+                                 Path="Tag" />
+                        <Binding Source="{StaticResource TranslationBindingSource}"
+                                 Path="Stamp" />
+                    </MultiBinding>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="QueueItemContainerStyle"
+               TargetType="ListViewItem">
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch" />
+            <Setter Property="Padding"
+                    Value="0" />
+            <Setter Property="Background"
+                    Value="Transparent" />
+            <Setter Property="BorderThickness"
+                    Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListViewItem">
+                        <Border x:Name="Container"
+                                Margin="0,0,0,10"
+                                Padding="0"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="Transparent"
+                                BorderThickness="2"
+                                CornerRadius="16">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter TargetName="Container"
+                                        Property="Background"
+                                        Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected"
+                                     Value="True">
+                                <Setter TargetName="Container"
+                                        Property="Background"
+                                        Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                                <Setter TargetName="Container"
+                                        Property="BorderBrush"
+                                        Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <LinearGradientBrush x:Key="HeroBrush"
+                             StartPoint="0,0"
+                             EndPoint="1,1">
+            <GradientStop Offset="0"
+                          Color="#13233A" />
+            <GradientStop Offset="0.55"
+                          Color="#1D3557" />
+            <GradientStop Offset="1"
+                          Color="#375A7F" />
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="PanelBrush"
+                             StartPoint="0,0"
+                             EndPoint="1,1">
+            <GradientStop Offset="0"
+                          Color="#202833" />
+            <GradientStop Offset="1"
+                          Color="#1A212B" />
+        </LinearGradientBrush>
+    </Page.Resources>
+
+    <Grid Margin="22,16,8,12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"
+                              MaxWidth="320" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Column="0">
+            <StackPanel DockPanel.Dock="Top"
+                        Margin="0,0,12,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Style="{StaticResource TranslatedTextBlockStyle}"
+                               Tag="账号列表"
+                               VerticalAlignment="Center"
+                               FontSize="16"
+                               FontWeight="Bold" />
+                    <ui:Button Grid.Column="1"
+                               Width="40"
+                               Margin="0,0,10,0"
+                               Appearance="Primary"
+                               Command="{Binding RunBatchCommand}"
+                               Icon="{ui:SymbolIcon Play24}"
+                               Tag="运行批次">
+                        <ui:Button.ToolTip>
+                            <MultiBinding Converter="{StaticResource TrConverter}">
+                                <Binding RelativeSource="{RelativeSource Self}"
+                                         Path="Tag" />
+                                <Binding Source="{StaticResource TranslationBindingSource}"
+                                         Path="Stamp" />
+                            </MultiBinding>
+                        </ui:Button.ToolTip>
+                    </ui:Button>
+                    <ui:Button Grid.Column="2"
+                               Width="40"
+                               Command="{Binding AddProfileCommand}"
+                               Icon="{ui:SymbolIcon Add24}"
+                               Tag="新增账号">
+                        <ui:Button.ToolTip>
+                            <MultiBinding Converter="{StaticResource TrConverter}">
+                                <Binding RelativeSource="{RelativeSource Self}"
+                                         Path="Tag" />
+                                <Binding Source="{StaticResource TranslationBindingSource}"
+                                         Path="Stamp" />
+                            </MultiBinding>
+                        </ui:Button.ToolTip>
+                    </ui:Button>
+                </Grid>
+
+                <TextBlock Margin="0,8,0,0"
+                           Style="{StaticResource TranslatedTextBlockStyle}"
+                           Tag="左侧负责排序和启停，右侧负责编辑当前账号的路径、目标账号和一条龙配置。"
+                           Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                           TextWrapping="Wrap" />
+                <Separator Margin="0,10,0,0"
+                           BorderThickness="0,1,0,0" />
+            </StackPanel>
+
+            <ListView ItemsSource="{Binding Profiles}"
+                      SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"
+                      ItemContainerStyle="{StaticResource QueueItemContainerStyle}"
+                      BorderThickness="0"
+                      Background="Transparent">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ui:Card Margin="0,0,12,8"
+                                 Padding="14">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <ui:TextBlock FontTypography="BodyStrong"
+                                                  Text="{Binding Name}" />
+                                    <ui:TextBlock Margin="0,4,0,0"
+                                                  Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}">
+                                        <ui:TextBlock.Text>
+                                            <MultiBinding Converter="{StaticResource TrConverter}">
+                                                <Binding Path="RegionDisplayKey" />
+                                                <Binding Source="{StaticResource TranslationBindingSource}"
+                                                         Path="Stamp" />
+                                            </MultiBinding>
+                                        </ui:TextBlock.Text>
+                                    </ui:TextBlock>
+                                    <ui:TextBlock Margin="0,6,0,0"
+                                                  Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                                  Text="{Binding OneDragonConfigName}"
+                                                  TextWrapping="Wrap">
+                                        <ui:TextBlock.Style>
+                                            <Style TargetType="ui:TextBlock">
+                                                <Setter Property="Visibility"
+                                                        Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding OneDragonConfigName}"
+                                                                 Value="">
+                                                        <Setter Property="Visibility"
+                                                                Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ui:TextBlock.Style>
+                                    </ui:TextBlock>
+                                    <ui:TextBlock Margin="0,6,0,0"
+                                                  Tag="未绑定一条龙配置"
+                                                  Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                                  TextWrapping="Wrap">
+                                        <ui:TextBlock.Style>
+                                            <Style TargetType="ui:TextBlock"
+                                                   BasedOn="{StaticResource TranslatedUiTextBlockStyle}">
+                                                <Setter Property="Visibility"
+                                                        Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding OneDragonConfigName}"
+                                                                 Value="">
+                                                        <Setter Property="Visibility"
+                                                                Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ui:TextBlock.Style>
+                                    </ui:TextBlock>
+                                </StackPanel>
+
+                                <ui:ToggleSwitch Grid.Column="1"
+                                                 Margin="12,0,0,0"
+                                                 VerticalAlignment="Top"
+                                                 IsChecked="{Binding IsEnabled, Mode=TwoWay}" />
+                            </Grid>
+                        </ui:Card>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </DockPanel>
+
+        <DockPanel Grid.Column="2">
+            <StackPanel DockPanel.Dock="Top"
+                        Margin="0,0,8,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource TranslatedTextBlockStyle}"
+                                   Tag="账号配置"
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   />
+                        <TextBlock Margin="0,6,0,0"
+                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                   Text="{Binding StatusText}"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Margin="0,6,0,0"
+                                   Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                   Text="{Binding BusyText}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <ui:Button Grid.Column="1"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Top"
+                               Command="{Binding RefreshCommand}"
+                               Icon="{ui:SymbolIcon ArrowSync24}"
+                               Tag="刷新">
+                        <ui:Button.ToolTip>
+                            <MultiBinding Converter="{StaticResource TrConverter}">
+                                <Binding RelativeSource="{RelativeSource Self}"
+                                         Path="Tag" />
+                                <Binding Source="{StaticResource TranslationBindingSource}"
+                                         Path="Stamp" />
+                            </MultiBinding>
+                        </ui:Button.ToolTip>
+                    </ui:Button>
+                    <ui:Button Grid.Column="2"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Top"
+                               Command="{Binding MoveSelectedProfileUpCommand}"
+                               Icon="{ui:SymbolIcon ArrowUp24}"
+                               Tag="上移">
+                        <ui:Button.ToolTip>
+                            <MultiBinding Converter="{StaticResource TrConverter}">
+                                <Binding RelativeSource="{RelativeSource Self}"
+                                         Path="Tag" />
+                                <Binding Source="{StaticResource TranslationBindingSource}"
+                                         Path="Stamp" />
+                            </MultiBinding>
+                        </ui:Button.ToolTip>
+                    </ui:Button>
+                    <ui:Button Grid.Column="3"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Top"
+                               Command="{Binding MoveSelectedProfileDownCommand}"
+                               Icon="{ui:SymbolIcon ArrowDown24}"
+                               Tag="下移">
+                        <ui:Button.ToolTip>
+                            <MultiBinding Converter="{StaticResource TrConverter}">
+                                <Binding RelativeSource="{RelativeSource Self}"
+                                         Path="Tag" />
+                                <Binding Source="{StaticResource TranslationBindingSource}"
+                                         Path="Stamp" />
+                            </MultiBinding>
+                        </ui:Button.ToolTip>
+                    </ui:Button>
+                    <ui:Button Grid.Column="4"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Top"
+                               Command="{Binding DeleteSelectedProfileCommand}"
+                               Icon="{ui:SymbolIcon Delete24}"
+                               Tag="删除当前账号">
+                        <ui:Button.ToolTip>
+                            <MultiBinding Converter="{StaticResource TrConverter}">
+                                <Binding RelativeSource="{RelativeSource Self}"
+                                         Path="Tag" />
+                                <Binding Source="{StaticResource TranslationBindingSource}"
+                                         Path="Stamp" />
+                            </MultiBinding>
+                        </ui:Button.ToolTip>
+                    </ui:Button>
+                </Grid>
+                <Separator Margin="0,10,0,0"
+                           BorderThickness="0,1,0,0" />
+            </StackPanel>
+
+            <ScrollViewer x:Name="DetailsScrollViewer"
+                          VerticalScrollBarVisibility="Auto"
+                          CanContentScroll="False"
+                          PreviewMouseWheel="DetailsScrollViewer_OnPreviewMouseWheel">
+                <StackPanel Margin="0,0,18,0">
+                    <ui:Card Padding="18"
+                             Margin="0,0,0,16">
+                        <StackPanel IsEnabled="{Binding HasSelectedProfile}">
+                        <ui:TextBlock FontTypography="Subtitle"
+                                      Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                      Tag="账号配置" />
+                        <ui:TextBlock Margin="0,6,0,0"
+                                      Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                      Tag="这里决定当前账号怎么启动、要匹配哪个已记住账号，以及绑定哪套一条龙配置。当前仅支持国服官服和国际服。"
+                                      Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                      TextWrapping="Wrap" />
+
+                        <Grid Margin="0,18,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Grid.Column="0"
+                                          Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                          Tag="账号名称"
+                                          VerticalAlignment="Center"
+                                          />
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding SelectedProfile.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </Grid>
+
+                        <Grid Margin="0,14,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Grid.Column="0"
+                                          Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                          Tag="是否启用"
+                                          VerticalAlignment="Center"
+                                          />
+                            <ui:ToggleSwitch Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             IsChecked="{Binding SelectedProfile.IsEnabled, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid Margin="0,14,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Grid.Column="0"
+                                          Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                          Tag="区服"
+                                          VerticalAlignment="Center"
+                                          />
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding RegionOptions}"
+                                      SelectedValue="{Binding SelectedProfile.Region, Mode=TwoWay}"
+                                      SelectedValuePath="Key">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock>
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource TrConverter}">
+                                                    <Binding Path="Value" />
+                                                    <Binding Source="{StaticResource TranslationBindingSource}"
+                                                             Path="Stamp" />
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+
+                        <Grid Margin="0,14,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Grid.Column="0"
+                                          Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                          Tag="一条龙配置"
+                                          VerticalAlignment="Center"
+                                          />
+                            <StackPanel Grid.Column="1">
+                                <ComboBox ItemsSource="{Binding AvailableOneDragonConfigs}"
+                                          SelectedItem="{Binding SelectedProfile.OneDragonConfigName, Mode=TwoWay}" />
+                                <ui:TextBlock Margin="0,8,0,0"
+                                              Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                              Text="{Binding SelectedOneDragonConfigStatusText}"
+                                              TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,14,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Grid.Column="0"
+                                          Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                          Tag="游戏路径"
+                                          VerticalAlignment="Center"
+                                          />
+                            <TextBox Grid.Column="1"
+                                     Margin="0,0,10,0"
+                                     Text="{Binding SelectedProfile.InstallPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <ui:Button Grid.Column="2"
+                                       Command="{Binding BrowseInstallPathCommand}"
+                                       Tag="浏览"
+                                       Icon="{ui:SymbolIcon FolderOpen24}">
+                                <ui:Button.Content>
+                                    <MultiBinding Converter="{StaticResource TrConverter}">
+                                        <Binding RelativeSource="{RelativeSource Self}"
+                                                 Path="Tag" />
+                                        <Binding Source="{StaticResource TranslationBindingSource}"
+                                                 Path="Stamp" />
+                                    </MultiBinding>
+                                </ui:Button.Content>
+                            </ui:Button>
+                        </Grid>
+                        <ui:TextBlock Margin="160,8,0,0"
+                                      Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                      Tag="会优先尝试自动预填常见启动路径：国服官服是 *\\miHoYo Launcher\\games\\Genshin Impact Game\\YuanShen.exe，国际服是 *\\HoYoPlay\\games\\Genshin Impact game\\GenshinImpact.exe。"
+                                      Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                      TextWrapping="Wrap" />
+
+                        <Grid Margin="0,14,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Grid.Column="0"
+                                          Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                          Tag="启动参数"
+                                          VerticalAlignment="Center"
+                                          />
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding SelectedProfile.LaunchArgs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </Grid>
+                        </StackPanel>
+                    </ui:Card>
+
+                <ui:Card Padding="18"
+                         Margin="0,0,0,16">
+                    <StackPanel IsEnabled="{Binding HasSelectedProfile}">
+                        <ui:TextBlock FontTypography="Subtitle"
+                                      Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                      Tag="账号切换" />
+                        <ui:TextBlock Margin="0,6,0,0"
+                                      Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                      Tag="多账户现在只保留记住账号切换。运行时会优先判断当前显示账号是否已经匹配目标账号；如果未匹配，才会展开账号列表并切换。"
+                                      Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                      TextWrapping="Wrap" />
+
+                        <Grid Margin="0,18,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBlock Grid.Column="0"
+                                          Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                          Tag="目标账号"
+                                          VerticalAlignment="Center"
+                                          />
+                            <StackPanel Grid.Column="1">
+                                <TextBox Text="{Binding SelectedProfile.RememberedAccountLabel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <ui:TextBlock Margin="0,8,0,0"
+                                              Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                              Text="{Binding SelectedRememberedAccountStatusText}"
+                                              TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </ui:Card>
+
+                <ui:Card Padding="18">
+                    <StackPanel>
+                        <ui:TextBlock FontTypography="Subtitle"
+                                      Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                      Tag="运行说明" />
+                        <ui:TextBlock Margin="0,8,0,0"
+                                      Style="{StaticResource TranslatedUiTextBlockStyle}"
+                                      Tag="启用的账号会按左侧顺序依次运行。程序会停在登录页，优先判断当前显示账号是否已经匹配目标账号；如果未匹配，再打开账号列表、选中目标账号并进入游戏，然后执行绑定的一条龙配置。当前不支持 B 服，也不会在切号时读取、写入或恢复注册表里的游戏设置。"
+                                      Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}"
+                                      TextWrapping="Wrap" />
+                    </StackPanel>
+                </ui:Card>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Grid>
+</Page>

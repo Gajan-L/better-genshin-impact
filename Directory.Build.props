@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <DefaultItemExcludes>$(DefaultItemExcludes);**\obj\**;**\obj*\**;**\artifacts\**;**\.dotnet-cli\**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

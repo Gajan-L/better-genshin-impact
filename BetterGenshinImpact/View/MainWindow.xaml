@@ -60,24 +60,48 @@
                            IsFooterSeparatorVisible="False"
                            OpenPaneLength="160">
             <ui:NavigationView.MenuItems>
-                <ui:NavigationViewItem Content="启动"
+                <ui:NavigationViewItem Tag="启动"
                                        NavigationCacheMode="Enabled"
                                        TargetPageType="{x:Type pages:HomePage}">
+                    <ui:NavigationViewItem.Content>
+                        <MultiBinding Converter="{StaticResource TrConverter}">
+                            <Binding RelativeSource="{RelativeSource Self}"
+                                     Path="Tag" />
+                            <Binding Source="{StaticResource TranslationBindingSource}"
+                                     Path="Stamp" />
+                        </MultiBinding>
+                    </ui:NavigationViewItem.Content>
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="Play24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
 
-                <ui:NavigationViewItem Content="实时触发"
+                <ui:NavigationViewItem Tag="实时触发"
                                        NavigationCacheMode="Enabled"
                                        TargetPageType="{x:Type pages:TriggerSettingsPage}">
+                    <ui:NavigationViewItem.Content>
+                        <MultiBinding Converter="{StaticResource TrConverter}">
+                            <Binding RelativeSource="{RelativeSource Self}"
+                                     Path="Tag" />
+                            <Binding Source="{StaticResource TranslationBindingSource}"
+                                     Path="Stamp" />
+                        </MultiBinding>
+                    </ui:NavigationViewItem.Content>
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="Timer24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
-                <ui:NavigationViewItem Content="独立任务"
+                <ui:NavigationViewItem Tag="独立任务"
                                        NavigationCacheMode="Enabled"
                                        TargetPageType="{x:Type pages:TaskSettingsPage}">
+                    <ui:NavigationViewItem.Content>
+                        <MultiBinding Converter="{StaticResource TrConverter}">
+                            <Binding RelativeSource="{RelativeSource Self}"
+                                     Path="Tag" />
+                            <Binding Source="{StaticResource TranslationBindingSource}"
+                                     Path="Stamp" />
+                        </MultiBinding>
+                    </ui:NavigationViewItem.Content>
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="TaskListSquareLtr24" />
                     </ui:NavigationViewItem.Icon>
@@ -85,15 +109,47 @@
 
                 <!--<ui:NavigationViewItemSeparator />-->
 
-                <ui:NavigationViewItem Content="一条龙"
+                <ui:NavigationViewItem Tag="一条龙"
                                        NavigationCacheMode="Enabled"
                                        TargetPageType="{x:Type pages:OneDragonFlowPage}">
+                    <ui:NavigationViewItem.Content>
+                        <MultiBinding Converter="{StaticResource TrConverter}">
+                            <Binding RelativeSource="{RelativeSource Self}"
+                                     Path="Tag" />
+                            <Binding Source="{StaticResource TranslationBindingSource}"
+                                     Path="Stamp" />
+                        </MultiBinding>
+                    </ui:NavigationViewItem.Content>
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="AnimalTurtle24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
 
-                <ui:NavigationViewItem Content="全自动">
+                <ui:NavigationViewItem Tag="多账户"
+                                       NavigationCacheMode="Enabled"
+                                       TargetPageType="{x:Type pages:MultiAccountPage}">
+                    <ui:NavigationViewItem.Content>
+                        <MultiBinding Converter="{StaticResource TrConverter}">
+                            <Binding RelativeSource="{RelativeSource Self}"
+                                     Path="Tag" />
+                            <Binding Source="{StaticResource TranslationBindingSource}"
+                                     Path="Stamp" />
+                        </MultiBinding>
+                    </ui:NavigationViewItem.Content>
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="People24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+
+                <ui:NavigationViewItem Tag="全自动">
+                    <ui:NavigationViewItem.Content>
+                        <MultiBinding Converter="{StaticResource TrConverter}">
+                            <Binding RelativeSource="{RelativeSource Self}"
+                                     Path="Tag" />
+                            <Binding Source="{StaticResource TranslationBindingSource}"
+                                     Path="Stamp" />
+                        </MultiBinding>
+                    </ui:NavigationViewItem.Content>
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="Bot24" />
                     </ui:NavigationViewItem.Icon>
@@ -101,33 +157,65 @@
 
                         <!--<ui:NavigationViewItemSeparator />-->
                         <!--  ConvertRange20  -->
-                        <ui:NavigationViewItem Content="调度器"
+                        <ui:NavigationViewItem Tag="调度器"
                                                NavigationCacheMode="Enabled"
                                                TargetPageType="{x:Type pages:ScriptControlPage}">
+                            <ui:NavigationViewItem.Content>
+                                <MultiBinding Converter="{StaticResource TrConverter}">
+                                    <Binding RelativeSource="{RelativeSource Self}"
+                                             Path="Tag" />
+                                    <Binding Source="{StaticResource TranslationBindingSource}"
+                                             Path="Stamp" />
+                                </MultiBinding>
+                            </ui:NavigationViewItem.Content>
                             <ui:NavigationViewItem.Icon>
                                 <ui:SymbolIcon Symbol="DeveloperBoard24" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
                         <!--  WebAsset24 | DocumentJs16 | Script16  -->
-                        <ui:NavigationViewItem Content="JS 脚本"
+                        <ui:NavigationViewItem Tag="JS 脚本"
                                                NavigationCacheMode="Enabled"
                                                TargetPageType="{x:Type pages:JsListPage}">
+                            <ui:NavigationViewItem.Content>
+                                <MultiBinding Converter="{StaticResource TrConverter}">
+                                    <Binding RelativeSource="{RelativeSource Self}"
+                                             Path="Tag" />
+                                    <Binding Source="{StaticResource TranslationBindingSource}"
+                                             Path="Stamp" />
+                                </MultiBinding>
+                            </ui:NavigationViewItem.Content>
                             <ui:NavigationViewItem.Icon>
                                 <ui:SymbolIcon Symbol="DocumentJs16" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
                         <!--  Map24  -->
-                        <ui:NavigationViewItem Content="地图追踪"
+                        <ui:NavigationViewItem Tag="地图追踪"
                                                NavigationCacheMode="Enabled"
                                                TargetPageType="{x:Type pages:MapPathingPage}">
+                            <ui:NavigationViewItem.Content>
+                                <MultiBinding Converter="{StaticResource TrConverter}">
+                                    <Binding RelativeSource="{RelativeSource Self}"
+                                             Path="Tag" />
+                                    <Binding Source="{StaticResource TranslationBindingSource}"
+                                             Path="Stamp" />
+                                </MultiBinding>
+                            </ui:NavigationViewItem.Content>
                             <ui:NavigationViewItem.Icon>
                                 <ui:SymbolIcon Symbol="Map24" />
                             </ui:NavigationViewItem.Icon>
                         </ui:NavigationViewItem>
                         <!--  Script16  -->
-                        <ui:NavigationViewItem Content="录制回放"
+                        <ui:NavigationViewItem Tag="录制回放"
                                                NavigationCacheMode="Enabled"
                                                TargetPageType="{x:Type pages:KeyMouseRecordPage}">
+                            <ui:NavigationViewItem.Content>
+                                <MultiBinding Converter="{StaticResource TrConverter}">
+                                    <Binding RelativeSource="{RelativeSource Self}"
+                                             Path="Tag" />
+                                    <Binding Source="{StaticResource TranslationBindingSource}"
+                                             Path="Stamp" />
+                                </MultiBinding>
+                            </ui:NavigationViewItem.Content>
                             <ui:NavigationViewItem.Icon>
                                 <ui:SymbolIcon Symbol="Record24" />
                             </ui:NavigationViewItem.Icon>
@@ -135,17 +223,33 @@
                     </ui:NavigationViewItem.MenuItems>
                 </ui:NavigationViewItem>
 
-                <ui:NavigationViewItem Content="辅助操控"
+                <ui:NavigationViewItem Tag="辅助操控"
                                        NavigationCacheMode="Enabled"
                                        TargetPageType="{x:Type pages:MacroSettingsPage}">
+                    <ui:NavigationViewItem.Content>
+                        <MultiBinding Converter="{StaticResource TrConverter}">
+                            <Binding RelativeSource="{RelativeSource Self}"
+                                     Path="Tag" />
+                            <Binding Source="{StaticResource TranslationBindingSource}"
+                                     Path="Stamp" />
+                        </MultiBinding>
+                    </ui:NavigationViewItem.Content>
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="XboxController24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
 
-                <ui:NavigationViewItem Content="快捷键"
+                <ui:NavigationViewItem Tag="快捷键"
                                        NavigationCacheMode="Enabled"
                                        TargetPageType="{x:Type pages:HotKeyPage}">
+                    <ui:NavigationViewItem.Content>
+                        <MultiBinding Converter="{StaticResource TrConverter}">
+                            <Binding RelativeSource="{RelativeSource Self}"
+                                     Path="Tag" />
+                            <Binding Source="{StaticResource TranslationBindingSource}"
+                                     Path="Stamp" />
+                        </MultiBinding>
+                    </ui:NavigationViewItem.Content>
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="Flash24" />
                     </ui:NavigationViewItem.Icon>
@@ -157,18 +261,34 @@
                         <ui:SymbolIcon Symbol="KeyboardMouse16" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>-->
-                <ui:NavigationViewItem Content="通知"
+                <ui:NavigationViewItem Tag="通知"
                                        NavigationCacheMode="Enabled"
                                        TargetPageType="{x:Type pages:NotificationSettingsPage}">
+                    <ui:NavigationViewItem.Content>
+                        <MultiBinding Converter="{StaticResource TrConverter}">
+                            <Binding RelativeSource="{RelativeSource Self}"
+                                     Path="Tag" />
+                            <Binding Source="{StaticResource TranslationBindingSource}"
+                                     Path="Stamp" />
+                        </MultiBinding>
+                    </ui:NavigationViewItem.Content>
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="Alert24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
             </ui:NavigationView.MenuItems>
             <ui:NavigationView.FooterMenuItems>
-                <ui:NavigationViewItem Content="设置"
+                <ui:NavigationViewItem Tag="设置"
                                        NavigationCacheMode="Enabled"
                                        TargetPageType="{x:Type pages:CommonSettingsPage}">
+                    <ui:NavigationViewItem.Content>
+                        <MultiBinding Converter="{StaticResource TrConverter}">
+                            <Binding RelativeSource="{RelativeSource Self}"
+                                     Path="Tag" />
+                            <Binding Source="{StaticResource TranslationBindingSource}"
+                                     Path="Stamp" />
+                        </MultiBinding>
+                    </ui:NavigationViewItem.Content>
                     <ui:NavigationViewItem.Icon>
                         <ui:SymbolIcon Symbol="Settings24" />
                     </ui:NavigationViewItem.Icon>

@@ -134,7 +134,7 @@ namespace BetterGenshinImpact.GameTask
 
             // 初始化触发器(一定要在任务上下文初始化完毕后使用)
             _triggers = GameTaskManager.LoadInitialTriggers();
-            GameLoadingTrigger.GlobalEnabled = TaskContext.Instance().Config.GenshinStartConfig.AutoEnterGameEnabled;
+            GameLoadingTrigger.GlobalEnabled = TaskContext.Instance().ShouldAutoEnterGame();
 
             // if (GraphicsCapture.IsHdrEnabled(hWnd))
             // {

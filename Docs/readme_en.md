@@ -100,6 +100,30 @@ Detailed guide: [Quick Start](https://www.bettergi.com/quickstart.html)
 
 Full documentation: [Documentation](https://www.bettergi.com/doc.html)
 
+## Multi-Account Fork Notes
+This fork's multi-account flow currently supports only:
+
+- CN Official
+- Global
+
+Bilibili is not supported.
+
+The multi-account flow keeps only one switching mode:
+
+- Remembered Account UI: uses OCR on the in-game remembered-account chooser
+
+To keep the implementation less invasive, the multi-account flow does not read, write, or restore game registry settings, and it no longer stores launcher snapshots.
+If different accounts need different resolution or window mode settings, use launch arguments instead, for example:
+
+- `-screen-width 1920 -screen-height 1080 -screen-fullscreen 0`
+
+The launch page and the multi-account page will also try to auto-fill common executable paths first:
+
+- `*\miHoYo Launcher\games\Genshin Impact Game\YuanShen.exe`
+- `*\HoYoPlay\games\Genshin Impact game\GenshinImpact.exe`
+
+If auto-detection does not find your install, use `Browse` and pick the executable manually.
+
 ## FAQ
 * **Why admin rights?**
     - The game runs as admin. Simulated clicks require matching permissions.

@@ -36,3 +36,8 @@ CLAUDE.md
 AGENTS.md
 
 __pycache__/
+.dotnet-cli/
+artifacts/
+objcodex*/
+objvalidate/
+codex_validation/

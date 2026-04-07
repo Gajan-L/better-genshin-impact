@@ -1,0 +1,245 @@
+name: Fork Upstream Sync Report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 15 * * *"
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  sync-and-report:
+    if: github.repository != 'babalae/better-genshin-impact'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream and origin state
+        id: sync
+        shell: bash
+        env:
+          UPSTREAM_REPO: https://github.com/babalae/better-genshin-impact.git
+          RELEASE_BRANCH: release
+          MIRROR_BRANCH: upstream-main
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git remote get-url upstream >/dev/null 2>&1; then
+            git remote set-url upstream "$UPSTREAM_REPO"
+          else
+            git remote add upstream "$UPSTREAM_REPO"
+          fi
+
+          git fetch origin --prune
+          git fetch upstream main --tags
+
+          previous_sha=""
+          if git ls-remote --exit-code --heads origin "$MIRROR_BRANCH" >/dev/null 2>&1; then
+            previous_sha="$(git rev-parse "origin/$MIRROR_BRANCH")"
+          fi
+
+          upstream_sha="$(git rev-parse upstream/main)"
+          upstream_version="$(git show upstream/main:BetterGenshinImpact/BetterGenshinImpact.csproj | sed -n 's:.*<Version>\\(.*\\)</Version>.*:\\1:p' | head -n 1)"
+          if [ -z "$upstream_version" ]; then
+            upstream_version="unknown"
+          fi
+
+          if [[ "$upstream_version" == "unknown" ]]; then
+            suggested_fork_version="unknown"
+          elif [[ "$upstream_version" == *-* ]]; then
+            suggested_fork_version="${upstream_version}.multi-account.1"
+          else
+            suggested_fork_version="${upstream_version}-multi-account.1"
+          fi
+
+          git checkout -B "$MIRROR_BRANCH" upstream/main
+          git push origin "$MIRROR_BRANCH" --force
+
+          new_commit_count="0"
+          compare_url=""
+          if [ -n "$previous_sha" ] && [ "$previous_sha" != "$upstream_sha" ]; then
+            new_commit_count="$(git rev-list --count "${previous_sha}..${upstream_sha}")"
+            compare_url="https://github.com/babalae/better-genshin-impact/compare/${previous_sha}...${upstream_sha}"
+          fi
+
+          release_exists="false"
+          release_sha=""
+          release_behind="0"
+          release_ahead="0"
+          release_compare_url=""
+          if git ls-remote --exit-code --heads origin "$RELEASE_BRANCH" >/dev/null 2>&1; then
+            release_exists="true"
+            release_sha="$(git rev-parse "origin/$RELEASE_BRANCH")"
+            counts="$(git rev-list --left-right --count "upstream/main...origin/$RELEASE_BRANCH")"
+            release_behind="$(echo "$counts" | awk '{print $1}')"
+            release_ahead="$(echo "$counts" | awk '{print $2}')"
+            release_compare_url="https://github.com/${GITHUB_REPOSITORY}/compare/${MIRROR_BRANCH}...${RELEASE_BRANCH}"
+          fi
+
+          latest_upstream_tag="$(git tag --merged upstream/main --sort=-creatordate | head -n 1)"
+          if [ -z "$latest_upstream_tag" ]; then
+            latest_upstream_tag="(none found)"
+          fi
+
+          recent_commits="$(git log upstream/main --pretty=format:'- %h %s (%cs)' -n 10 || true)"
+          if [ -z "$recent_commits" ]; then
+            recent_commits="- No upstream commits found."
+          fi
+
+          {
+            echo "previous_sha=$previous_sha"
+            echo "upstream_sha=$upstream_sha"
+            echo "upstream_version=$upstream_version"
+            echo "suggested_fork_version=$suggested_fork_version"
+            echo "new_commit_count=$new_commit_count"
+            echo "compare_url=$compare_url"
+            echo "release_exists=$release_exists"
+            echo "release_sha=$release_sha"
+            echo "release_behind=$release_behind"
+            echo "release_ahead=$release_ahead"
+            echo "release_compare_url=$release_compare_url"
+            echo "latest_upstream_tag=$latest_upstream_tag"
+            echo "recent_commits<<EOF"
+            echo "$recent_commits"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Update sync report issue
+        uses: actions/github-script@v7
+        env:
+          PREVIOUS_SHA: ${{ steps.sync.outputs.previous_sha }}
+          UPSTREAM_SHA: ${{ steps.sync.outputs.upstream_sha }}
+          UPSTREAM_VERSION: ${{ steps.sync.outputs.upstream_version }}
+          SUGGESTED_FORK_VERSION: ${{ steps.sync.outputs.suggested_fork_version }}
+          NEW_COMMIT_COUNT: ${{ steps.sync.outputs.new_commit_count }}
+          COMPARE_URL: ${{ steps.sync.outputs.compare_url }}
+          RELEASE_EXISTS: ${{ steps.sync.outputs.release_exists }}
+          RELEASE_SHA: ${{ steps.sync.outputs.release_sha }}
+          RELEASE_BEHIND: ${{ steps.sync.outputs.release_behind }}
+          RELEASE_AHEAD: ${{ steps.sync.outputs.release_ahead }}
+          RELEASE_COMPARE_URL: ${{ steps.sync.outputs.release_compare_url }}
+          LATEST_UPSTREAM_TAG: ${{ steps.sync.outputs.latest_upstream_tag }}
+          RECENT_COMMITS: ${{ steps.sync.outputs.recent_commits }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const title = '[bot] Upstream Sync Report';
+            const previousSha = process.env.PREVIOUS_SHA || '';
+            const upstreamSha = process.env.UPSTREAM_SHA || '';
+            const upstreamVersion = process.env.UPSTREAM_VERSION || 'unknown';
+            const suggestedForkVersion = process.env.SUGGESTED_FORK_VERSION || 'unknown';
+            const newCommitCount = process.env.NEW_COMMIT_COUNT || '0';
+            const compareUrl = process.env.COMPARE_URL || '';
+            const releaseExists = process.env.RELEASE_EXISTS === 'true';
+            const releaseSha = process.env.RELEASE_SHA || '';
+            const releaseBehind = process.env.RELEASE_BEHIND || '0';
+            const releaseAhead = process.env.RELEASE_AHEAD || '0';
+            const releaseCompareUrl = process.env.RELEASE_COMPARE_URL || '';
+            const latestUpstreamTag = process.env.LATEST_UPSTREAM_TAG || '(none found)';
+            const recentCommits = process.env.RECENT_COMMITS || '- No upstream commits found.';
+            const syncedAt = new Date().toISOString();
+
+            const lines = [
+              '# Upstream Sync Report',
+              '',
+              `- Synced at: ${syncedAt}`,
+              `- Upstream mirror branch: \`upstream-main\``,
+              `- Upstream main SHA: \`${upstreamSha || 'unknown'}\``,
+              `- Upstream version: \`${upstreamVersion}\``,
+              `- Suggested fork version: \`${suggestedForkVersion}\``,
+              `- Previous mirror SHA: ${previousSha ? `\`${previousSha}\`` : 'None (first sync)'}`,
+              `- New upstream commits since last sync: **${newCommitCount}**`,
+              `- Latest upstream tag on main: \`${latestUpstreamTag}\``,
+            ];
+
+            if (compareUrl) {
+              lines.push(`- Upstream compare: ${compareUrl}`);
+            }
+
+            if (releaseExists) {
+              lines.push(`- Release branch SHA: \`${releaseSha}\``);
+              lines.push(`- Release branch is behind upstream-main by **${releaseBehind}** commit(s)`);
+              lines.push(`- Release branch is ahead of upstream-main by **${releaseAhead}** commit(s)`);
+              if (releaseCompareUrl) {
+                lines.push(`- Release compare: ${releaseCompareUrl}`);
+              }
+            } else {
+              lines.push('- Release branch `release` was not found on origin.');
+            }
+
+            lines.push(
+              '',
+              '## Recent upstream commits',
+              '',
+              recentCommits,
+              '',
+              '## Suggested next step',
+              '',
+              '- Review the compare link above, then merge or rebase `release` onto `upstream-main` manually after testing.'
+            );
+
+            const body = lines.join('\n');
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open',
+              creator: 'github-actions[bot]',
+              per_page: 100,
+            });
+
+            const existing = issues.find((issue) => issue.title === title);
+
+            if (existing) {
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: existing.number,
+                title,
+                body,
+              });
+
+              if (newCommitCount !== '0') {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: existing.number,
+                  body: `Detected ${newCommitCount} new upstream commit(s). Review \`upstream-main\` before updating \`release\`.`,
+                });
+              }
+            } else {
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title,
+                body,
+              });
+            }
+
+      - name: Write workflow summary
+        shell: bash
+        run: |
+          {
+            echo "## Fork upstream sync report"
+            echo ""
+            echo "- upstream-main synced to ${{ steps.sync.outputs.upstream_sha }}"
+            echo "- upstream version: ${{ steps.sync.outputs.upstream_version }}"
+            echo "- suggested fork version: ${{ steps.sync.outputs.suggested_fork_version }}"
+            echo "- new upstream commits: ${{ steps.sync.outputs.new_commit_count }}"
+            if [ "${{ steps.sync.outputs.release_exists }}" = "true" ]; then
+              echo "- release behind upstream-main: ${{ steps.sync.outputs.release_behind }}"
+              echo "- release ahead of upstream-main: ${{ steps.sync.outputs.release_ahead }}"
+            else
+              echo "- release branch not found on origin"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

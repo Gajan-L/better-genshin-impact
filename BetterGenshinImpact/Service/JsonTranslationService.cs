@@ -69,7 +69,7 @@ public sealed class JsonTranslationService : ITranslationService, IDisposable
             previousLoaded = _loadedCultureName;
             FlushMissingIfDirty(previousLoaded);
 
-            if (string.IsNullOrWhiteSpace(cultureName) || IsChineseCultureName(cultureName))
+            if (string.IsNullOrWhiteSpace(cultureName) || IsSourceCultureName(cultureName))
             {
                 _loadedCultureName = string.Empty;
                 _map = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -109,7 +109,7 @@ public sealed class JsonTranslationService : ITranslationService, IDisposable
         }
 
         var culture = GetCurrentCulture();
-        if (IsChineseCulture(culture))
+        if (IsSourceCulture(culture))
         {
             return text;
         }
@@ -197,7 +197,7 @@ public sealed class JsonTranslationService : ITranslationService, IDisposable
             return;
         }
 
-        if (IsChineseCultureName(cultureName))
+        if (IsSourceCultureName(cultureName))
         {
             Interlocked.Exchange(ref _dirtyMissing, 0);
             return;
@@ -471,20 +471,29 @@ public sealed class JsonTranslationService : ITranslationService, IDisposable
         }
     }
 
-    private static bool IsChineseCulture(CultureInfo culture)
+    private static bool IsSourceCulture(CultureInfo culture)
     {
         if (culture == CultureInfo.InvariantCulture)
         {
             return false;
         }
 
-        var name = culture.Name;
-        return name.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
+        return IsSourceCultureName(culture.Name);
     }
 
-    private static bool IsChineseCultureName(string cultureName)
+    private static bool IsSourceCultureName(string cultureName)
     {
-        return cultureName.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
+        if (string.IsNullOrWhiteSpace(cultureName))
+        {
+            return false;
+        }
+
+        return cultureName.Equals("zh-Hans", StringComparison.OrdinalIgnoreCase)
+               || cultureName.StartsWith("zh-Hans-", StringComparison.OrdinalIgnoreCase)
+               || cultureName.Equals("zh-CN", StringComparison.OrdinalIgnoreCase)
+               || cultureName.StartsWith("zh-CN-", StringComparison.OrdinalIgnoreCase)
+               || cultureName.Equals("zh-SG", StringComparison.OrdinalIgnoreCase)
+               || cultureName.StartsWith("zh-SG-", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool ContainsCjk(string text)
@@ -660,7 +669,7 @@ public sealed class JsonTranslationService : ITranslationService, IDisposable
             previousLoaded = _loadedCultureName;
             FlushMissingIfDirty(previousLoaded);
 
-            if (string.IsNullOrWhiteSpace(cultureName) || IsChineseCultureName(cultureName))
+            if (string.IsNullOrWhiteSpace(cultureName) || IsSourceCultureName(cultureName))
             {
                 _loadedCultureName = string.Empty;
                 _map = new Dictionary<string, string>(StringComparer.Ordinal);

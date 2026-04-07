@@ -13,11 +13,11 @@ public class SystemControl
 {
     public static nint FindGenshinImpactHandle()
     {
-        var processNames = TaskContext.Instance().GetGenshinGameProcessNameList();
+        var processNames = TaskContext.Instance().GetResolvedGenshinGameProcessNameList();
         return FindHandleByProcessName(processNames.ToArray());
     }
 
-    public static async Task<nint> StartFromLocalAsync(string path)
+    public static async Task<nint> StartFromLocalAsync(string path, string? launchArgs = null)
     {
         if (!File.Exists(path))
         {
@@ -27,7 +27,7 @@ public class SystemControl
 
         var cfg = TaskContext.Instance().Config.GenshinStartConfig;
         var workdir = Path.GetDirectoryName(path) ?? "";
-        var arg = cfg.GenshinStartArgs;
+        var arg = launchArgs ?? TaskContext.Instance().ResolveGenshinStartArgs();
 
         if (cfg.StartGameWithCmd)
         {
@@ -75,7 +75,7 @@ public class SystemControl
             return false;
         }
 
-        var processNames = TaskContext.Instance().GetGenshinGameProcessNameList();
+        var processNames = TaskContext.Instance().GetResolvedGenshinGameProcessNameList();
         return processNames.Any(p => string.Equals(p, name, StringComparison.OrdinalIgnoreCase));
     }
     
@@ -324,7 +324,7 @@ public class SystemControl
     {
         try
         {
-            var processNames = TaskContext.Instance().GetGenshinGameProcessNameList();
+            var processNames = TaskContext.Instance().GetResolvedGenshinGameProcessNameList();
             var processes = processNames
                 .SelectMany(Process.GetProcessesByName)
                 .GroupBy(p => p.Id)

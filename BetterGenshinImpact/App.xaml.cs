@@ -12,6 +12,9 @@ using BetterGenshinImpact.Helpers;
 using BetterGenshinImpact.Helpers.Extensions;
 using BetterGenshinImpact.Helpers.Win32;
 using BetterGenshinImpact.Hutao;
+using BetterGenshinImpact.Modules.MultiAccount;
+using BetterGenshinImpact.Modules.MultiAccount.LoginFlow;
+using BetterGenshinImpact.Modules.MultiAccount.Runner;
 using BetterGenshinImpact.Service;
 using BetterGenshinImpact.Service.Interface;
 using BetterGenshinImpact.Service.Notification;
@@ -135,6 +138,7 @@ public partial class App : Application
                 services.AddView<JsListPage, JsListViewModel>();
                 services.AddView<MapPathingPage, MapPathingViewModel>();
                 services.AddView<OneDragonFlowPage, OneDragonFlowViewModel>();
+                services.AddView<MultiAccountPage, MultiAccountPageViewModel>();
                 services.AddSingleton<PathingConfigViewModel>();
                 // services.AddView<PathingConfigView, PathingConfigViewModel>();
                 services.AddView<KeyBindingsSettingsPage, KeyBindingsSettingsPageViewModel>();
@@ -165,6 +169,14 @@ public partial class App : Application
                 services.AddSingleton<IMihoyoMapApiService, MihoyoMapApiService>();
                 services.AddSingleton<IKongyingTavernApiService, KongyingTavernApiService>();
                 services.AddSingleton<IMaskMapPointService, MaskMapPointService>();
+                services.AddSingleton<GameExecutablePathResolver>();
+                services.AddSingleton<IMultiAccountProfileStore, MultiAccountProfileStore>();
+                services.AddSingleton<OneDragonConfigCatalog>();
+                services.AddSingleton<RememberedAccountUiLoginAutomation>();
+                services.AddSingleton<IGameLoginFlowFactory, GameLoginFlowFactory>();
+                services.AddSingleton<IGameSessionController, GameSessionController>();
+                services.AddSingleton<IOneDragonRunner, OneDragonRunner>();
+                services.AddSingleton<AccountBatchOrchestrator>();
 
                 services.AddSingleton(TimeProvider.System);
                 services.AddSingleton<IServerTimeProvider, ServerTimeProvider>();
