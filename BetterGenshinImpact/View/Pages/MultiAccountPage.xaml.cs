@@ -7,7 +7,7 @@ using BetterGenshinImpact.ViewModel.Pages;
 
 namespace BetterGenshinImpact.View.Pages;
 
-public partial class MultiAccountPage
+public partial class MultiAccountPage : Page
 {
     public MultiAccountPageViewModel ViewModel { get; }
 

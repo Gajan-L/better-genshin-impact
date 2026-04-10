@@ -344,7 +344,12 @@ namespace BetterGenshinImpact.View.Behavior
                     {
                         continue;
                     }
-                    
+
+                    if (IsAutoTranslateExplicitlyDisabled(current))
+                    {
+                        continue;
+                    }
+
                     if (IsInGridViewRowPresenter(current))
                     {
                         continue;
@@ -917,6 +922,16 @@ namespace BetterGenshinImpact.View.Behavior
                 }
 
                 return false;
+            }
+
+            private static bool IsAutoTranslateExplicitlyDisabled(DependencyObject obj)
+            {
+                return obj switch
+                {
+                    FrameworkElement fe => fe.ReadLocalValue(EnableAutoTranslateProperty) is bool enable && !enable,
+                    FrameworkContentElement fce => fce.ReadLocalValue(EnableAutoTranslateProperty) is bool enable && !enable,
+                    _ => false
+                };
             }
         }
     }

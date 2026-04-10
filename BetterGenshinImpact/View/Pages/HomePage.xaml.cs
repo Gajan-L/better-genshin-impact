@@ -1,8 +1,9 @@
-﻿using BetterGenshinImpact.ViewModel.Pages;
+using BetterGenshinImpact.ViewModel.Pages;
+using System.Windows.Controls;
 
 namespace BetterGenshinImpact.View.Pages
 {
-    public partial class HomePage
+    public partial class HomePage : Page
     {
         public HomePageViewModel ViewModel { get; }
 
