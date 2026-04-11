@@ -178,6 +178,7 @@ public partial class App : Application
                 services.AddSingleton<IGameSessionController, GameSessionController>();
                 services.AddSingleton<IOneDragonRunner, OneDragonRunner>();
                 services.AddSingleton<AccountBatchOrchestrator>();
+                services.AddSingleton<MultiAccountCommandLineService>();
 
                 services.AddSingleton(TimeProvider.System);
                 services.AddSingleton<IServerTimeProvider, ServerTimeProvider>();
@@ -230,6 +231,11 @@ public partial class App : Application
         {
             // 分配控制台窗口以支持控制台输出
             ConsoleHelper.AllocateConsole("BetterGI Console");
+            if (CommandLineOptions.Instance.Action == CommandLineAction.ListMultiAccountProfiles)
+            {
+                await HandleListMultiAccountProfilesAsync();
+                return;
+            }
             RegisterEvents();
             await _host.StartAsync();
             ServerTimeHelper.Initialize(_host.Services.GetRequiredService<IServerTimeProvider>());
@@ -371,5 +377,48 @@ public partial class App : Application
 
         // log
         GetLogger<App>().LogDebug(e, "UnHandle Exception");
+    }
+
+    private static async Task HandleListMultiAccountProfilesAsync()
+    {
+        var exitCode = 0;
+
+        try
+        {
+            var profiles = await new MultiAccountProfileStore().LoadAsync();
+            if (profiles.Count == 0)
+            {
+                ConsoleHelper.WriteLine("No multi-account profiles found.");
+            }
+            else
+            {
+                ConsoleHelper.WriteLine("Multi-account profiles:");
+                foreach (var profile in profiles)
+                {
+                    var enabledText = profile.IsEnabled ? "enabled" : "disabled";
+                    var rememberedAccount = string.IsNullOrWhiteSpace(profile.RememberedAccountLabel)
+                        ? "-"
+                        : profile.RememberedAccountLabel;
+                    var oneDragonConfig = string.IsNullOrWhiteSpace(profile.OneDragonConfigName)
+                        ? "-"
+                        : profile.OneDragonConfigName;
+
+                    ConsoleHelper.WriteLine(
+                        $"{profile.Order + 1}. {profile.Name} | id={profile.Id} | {enabledText} | region={profile.Region} | remembered={rememberedAccount} | one-dragon={oneDragonConfig}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            exitCode = 1;
+            ConsoleHelper.WriteError(ex.Message);
+        }
+        finally
+        {
+            Console.Out.Flush();
+            Console.Error.Flush();
+            await Task.Delay(150);
+            Environment.Exit(exitCode);
+        }
     }
 }

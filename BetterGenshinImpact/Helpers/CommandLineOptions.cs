@@ -24,6 +24,8 @@ public class CommandLineOptions
     /// </summary>
     public string[] GroupNames { get; } = [];
 
+    public string[] MultiAccountProfileNames { get; } = [];
+
     /// <summary>
     /// 是否有命令行任务参数（startOneDragon / --startGroups / --TaskProgress / start）
     /// </summary>
@@ -35,13 +37,19 @@ public class CommandLineOptions
     /// </summary>
     public bool ShouldDeferGameStart => Action is CommandLineAction.StartOneDragon
         or CommandLineAction.StartGroups
-        or CommandLineAction.TaskProgress;
+        or CommandLineAction.TaskProgress
+        or CommandLineAction.StartMultiAccount;
 
-    private CommandLineOptions(CommandLineAction action, string? oneDragonConfigName = null, string[]? groupNames = null)
+    private CommandLineOptions(
+        CommandLineAction action,
+        string? oneDragonConfigName = null,
+        string[]? groupNames = null,
+        string[]? multiAccountProfileNames = null)
     {
         Action = action;
         OneDragonConfigName = oneDragonConfigName;
         GroupNames = groupNames ?? [];
+        MultiAccountProfileNames = multiAccountProfileNames ?? [];
     }
 
     internal static CommandLineOptions Parse(string[] args)
@@ -66,6 +74,20 @@ public class CommandLineOptions
         if (arg1.Equals("--TaskProgress", StringComparison.OrdinalIgnoreCase))
         {
             return new CommandLineOptions(CommandLineAction.TaskProgress, groupNames: extra);
+        }
+
+        if (arg1.Equals("startMultiAccount", StringComparison.OrdinalIgnoreCase)
+            || arg1.Equals("--startMultiAccount", StringComparison.OrdinalIgnoreCase))
+        {
+            return new CommandLineOptions(
+                CommandLineAction.StartMultiAccount,
+                multiAccountProfileNames: extra);
+        }
+
+        if (arg1.Equals("listMultiAccountProfiles", StringComparison.OrdinalIgnoreCase)
+            || arg1.Equals("--listMultiAccountProfiles", StringComparison.OrdinalIgnoreCase))
+        {
+            return new CommandLineOptions(CommandLineAction.ListMultiAccountProfiles);
         }
 
         if (arg1.Contains("start", StringComparison.OrdinalIgnoreCase))
@@ -93,4 +115,8 @@ public enum CommandLineAction
 
     /// <summary>--TaskProgress — 启动任务进度</summary>
     TaskProgress,
+
+    StartMultiAccount,
+
+    ListMultiAccountProfiles,
 }

@@ -114,8 +114,10 @@ public class RememberedAccountUiLoginAutomation
     {
         var page = new BvPage(cancellationToken);
         var timeoutAt = Stopwatch.StartNew();
+        var lastFocusRecoveryAt = TimeSpan.Zero;
+        var focusRecoveryCount = 0;
 
-        while (timeoutAt.Elapsed < TimeSpan.FromSeconds(45))
+        while (timeoutAt.Elapsed < TimeSpan.FromSeconds(60))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -125,10 +127,53 @@ public class RememberedAccountUiLoginAutomation
                 return;
             }
 
+            if (timeoutAt.Elapsed >= TimeSpan.FromSeconds(5)
+                && timeoutAt.Elapsed - lastFocusRecoveryAt >= TimeSpan.FromSeconds(2))
+            {
+                TryRecoverGameWindowFocus(++focusRecoveryCount);
+                lastFocusRecoveryAt = timeoutAt.Elapsed;
+            }
+
             await page.Wait(300);
         }
 
         throw new TimeoutException("Timed out waiting for the login page.");
+    }
+
+    private void TryRecoverGameWindowFocus(int attempt)
+    {
+        try
+        {
+            if (SystemControl.IsGenshinImpactActiveByProcess())
+            {
+                return;
+            }
+
+            var gameHandle = TaskContext.Instance().IsInitialized
+                ? TaskContext.Instance().GameHandle
+                : SystemControl.FindGenshinImpactHandle();
+
+            if (gameHandle == 0)
+            {
+                return;
+            }
+
+            _logger.LogInformation(
+                "Login page not ready yet; recovering game focus. Attempt {Attempt}",
+                attempt);
+
+            if (attempt >= 4)
+            {
+                SystemControl.MinimizeAndActivateWindow(gameHandle);
+                return;
+            }
+
+            SystemControl.ActivateWindow(gameHandle);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to recover game focus while waiting for the login page.");
+        }
     }
 
     private async Task EnsureRememberedAccountChooserAsync(string targetAccountLabel, CancellationToken cancellationToken)

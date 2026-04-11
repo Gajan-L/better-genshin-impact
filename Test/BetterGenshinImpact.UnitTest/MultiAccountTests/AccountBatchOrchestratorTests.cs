@@ -155,6 +155,31 @@ public class AccountBatchOrchestratorTests
         Assert.Empty(loginFlow.EnteredProfileIds);
     }
 
+    [Fact]
+    public async Task RunBatchAsync_UsesProvidedProfileOrder()
+    {
+        using var tempDirectory = new TemporaryDirectory();
+        var loginFlow = new FakeLoginFlow();
+        var runner = new FakeOneDragonRunner();
+        var gameSessionController = new FakeGameSessionController();
+        var oneDragonConfigCatalog = CreateOneDragonConfigCatalog(tempDirectory.Path, "dragon-one");
+        var orchestrator = new AccountBatchOrchestrator(
+            runner,
+            new FakeLoginFlowFactory(loginFlow),
+            gameSessionController,
+            oneDragonConfigCatalog,
+            new FakeLogger<AccountBatchOrchestrator>(),
+            Path.Combine(tempDirectory.Path, "logs"));
+
+        var secondProfile = CreateProfile("account-two", 1);
+        var firstProfile = CreateProfile("account-one", 0);
+
+        var records = await orchestrator.RunBatchAsync([secondProfile, firstProfile]);
+
+        Assert.Equal(["account-two", "account-one"], loginFlow.EnteredProfileIds);
+        Assert.Equal(["account-two", "account-one"], records.Select(record => record.ProfileId));
+    }
+
     private static OneDragonConfigCatalog CreateOneDragonConfigCatalog(string root, params string[] configNames)
     {
         var configDirectory = Path.Combine(root, "OneDragon");

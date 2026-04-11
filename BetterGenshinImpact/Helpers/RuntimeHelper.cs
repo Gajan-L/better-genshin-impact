@@ -166,8 +166,29 @@ internal static class RuntimeExtension
 {
     public static IHostBuilder UseElevated(this IHostBuilder app)
     {
-        RuntimeHelper.EnsureElevated();
+        if (!ShouldSkipElevation(Environment.GetCommandLineArgs().Skip(1)))
+        {
+            RuntimeHelper.EnsureElevated();
+        }
+
         return app;
+    }
+
+    private static bool ShouldSkipElevation(IEnumerable<string> args)
+    {
+        var normalizedArgs = args
+            .Select(arg => arg.Trim().Trim('"'))
+            .Where(arg => !string.IsNullOrWhiteSpace(arg))
+            .ToArray();
+
+        if (normalizedArgs.Any(arg => arg.Equals("--no-elevate", StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
+        return normalizedArgs.Any(arg =>
+            arg.Equals("listMultiAccountProfiles", StringComparison.OrdinalIgnoreCase)
+            || arg.Equals("--listMultiAccountProfiles", StringComparison.OrdinalIgnoreCase));
     }
 
     public static IHostBuilder UseSingleInstance(this IHostBuilder self, string instanceName, Action<bool> callback = null!)

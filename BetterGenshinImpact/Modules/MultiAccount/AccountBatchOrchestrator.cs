@@ -25,7 +25,7 @@ public class AccountBatchOrchestrator(
 
         try
         {
-            foreach (var profile in profiles.OrderBy(profile => profile.Order))
+            foreach (var profile in profiles)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

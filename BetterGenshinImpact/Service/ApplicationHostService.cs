@@ -10,6 +10,7 @@ using System.Windows;
 using BetterGenshinImpact.Core.Script;
 using BetterGenshinImpact.GameTask;
 using BetterGenshinImpact.Helpers;
+using BetterGenshinImpact.Modules.MultiAccount;
 using Wpf.Ui;
 
 namespace BetterGenshinImpact.Service;
@@ -17,7 +18,9 @@ namespace BetterGenshinImpact.Service;
 /// <summary>
 /// Managed host of the application.
 /// </summary>
-public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedService
+public class ApplicationHostService(
+    IServiceProvider serviceProvider,
+    MultiAccountCommandLineService multiAccountCommandLineService) : IHostedService
 {
     private INavigationWindow? _navigationWindow;
 
@@ -44,12 +47,18 @@ public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedS
     /// </summary>
     private async Task HandleActivationAsync()
     {
+        var cmdOptions = CommandLineOptions.Instance;
+        if (cmdOptions.Action == CommandLineAction.ListMultiAccountProfiles)
+        {
+            var exitCode = await multiAccountCommandLineService.ListProfilesAsync();
+            Environment.Exit(exitCode);
+            return;
+        }
+
         if (!Application.Current.Windows.OfType<MainWindow>().Any())
         {
             _navigationWindow = (serviceProvider.GetService(typeof(INavigationWindow)) as INavigationWindow)!;
             _navigationWindow!.ShowWindow();
-
-            var cmdOptions = CommandLineOptions.Instance;
 
             if (cmdOptions.HasTaskArgs)
             {
@@ -97,6 +106,11 @@ public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedS
                         // 通过命令行参数打开「启动页开关」 => 跳转到主页。
                         _ = _navigationWindow.Navigate(typeof(HomePage));
                         // 后续代码在 HomePageViewModel / OnLoaded 中。
+                        break;
+
+                    case CommandLineAction.StartMultiAccount:
+                        _ = _navigationWindow.Navigate(typeof(MultiAccountPage));
+                        _ = multiAccountCommandLineService.RunBatchAsync(cmdOptions.MultiAccountProfileNames);
                         break;
                 }
             }
